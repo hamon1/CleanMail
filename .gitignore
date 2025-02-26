@@ -172,4 +172,4 @@ cython_debug/
 
 # credentials file
 credentials.json
-token.json
+token.pickle
