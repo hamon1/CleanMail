@@ -1,0 +1,25 @@
+{
+    "delete_old": {
+        "enabled": true,
+        "days": 365,
+        "exclude_important": true
+    },
+    "organize": [
+        {
+            "keyword": "프로모션",
+            "label": "광고"
+        },
+        {
+            "keyword": "Rakuten",
+            "label": "설문조사"
+        },
+        {
+            "keyword": "google",
+            "label": "구글"
+        },
+        {}
+    ],
+    "schedule": {
+        "interval": "daily"  
+    }
+}

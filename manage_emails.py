@@ -1,4 +1,4 @@
-from googleapiclient.discovery import build
+# from googleapiclient.discovery import build
 from list_emails import authenticate_gmail, list_old_emails, get_email_details
 from tqdm import tqdm
 import os
@@ -35,7 +35,7 @@ def delete_old_emails(confirm=False, from_email=None, keyword=None, exclude_from
             # service.users().messages().delete(userId="me", id=msg["id"]).execute()
 
             # 휴지통 이동 코드 (30일 이후 삭제)
-            # service.users().messages().trash(userId="me", id=message_id).execute()
+            service.users().messages().trash(userId="me", id=msg["id"]).execute()
 
 
             pbar.set_postfix(삭제_메일=f"{sender} - {subject}")
