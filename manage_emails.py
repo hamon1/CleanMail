@@ -34,6 +34,10 @@ def delete_old_emails(confirm=False, from_email=None, keyword=None, exclude_from
             # 실제 삭제 수행 (테스트 시 주석 처리)
             # service.users().messages().delete(userId="me", id=msg["id"]).execute()
 
+            # 휴지통 이동 코드 (30일 이후 삭제)
+            # service.users().messages().trash(userId="me", id=message_id).execute()
+
+
             pbar.set_postfix(삭제_메일=f"{sender} - {subject}")
             pbar.update(1)
 
@@ -70,3 +74,55 @@ def move_email(email_id, label_name):
         body={"removeLabelIds": ["INBOX"], "addLabelIds": [label_id]}
     ).execute()
     print(f"✅ 이메일 {email_id}이(가) '{label_name}'로 이동되었습니다!")
+
+def get_label_id(service, label_name):
+    """Gmail에서 라벨 ID 가져오기 (없으면 생성)"""
+    label_results = service.users().labels().list(userId="me").execute()
+    labels = label_results.get("labels", [])
+
+    # 이미 존재하는 라벨 찾기
+    for label in labels:
+        if label["name"].lower() == label_name.lower():
+            return label["id"]
+
+    # 라벨이 없으면 생성
+    new_label = service.users().labels().create(
+        userId="me",
+        body={"name": label_name, "labelListVisibility": "labelShow", "messageListVisibility": "show"}
+    ).execute()
+    
+    print(f"🆕 라벨 '{label_name}' 생성 완료!")
+    return new_label["id"]
+
+def organize_emails(from_email=None, keyword=None, label_name="자동 정리"):
+    """특정 조건에 맞는 메일을 정리하여 라벨로 이동 (받은편지함에서 제거)"""
+    service = authenticate_gmail()
+    if not service:
+        return
+
+    query = []
+    if from_email:
+        query.append(f"from:{from_email}")
+    if keyword:
+        query.append(f"{keyword}")
+
+    query_str = " ".join(query)
+    
+    print(f"🔍 검색 조건: {query_str}")
+    results = service.users().messages().list(userId="me", q=query_str).execute()
+    messages = results.get("messages", [])
+
+    if not messages:
+        print("📭 정리할 이메일이 없습니다.")
+        return
+    
+    label_id = get_label_id(service, label_name)
+
+    for msg in messages:
+        service.users().messages().modify(
+            userId="me",
+            id=msg["id"],
+            body={"removeLabelIds": ["INBOX"], "addLabelIds": [label_id]}
+        ).execute()
+        print(f"✅ 이메일 {msg['id']} → '{label_name}' 라벨로 이동 완료!")
+
